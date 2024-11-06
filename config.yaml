@@ -1,0 +1,22 @@
+clusters:
+  - name: production-cluster
+    kubeconfig: ./production-cluster.yaml
+    #prometheus地址
+    prometheus: http://127.0.0.1:9091
+    #prometheus token,如果prometheus开启了认证则需要填写,否则为空
+    prometheus_token: ""
+    #如果配合前端项目使用，集群名称映射的名字需要与这里一致
+    ClusterName: ""
+
+  - name: staging-cluster
+    kubeconfig: ./staging-cluster.yaml
+    prometheus: http://127.0.0.1:9090
+    prometheus_token: ""
+    #如果配合前端项目使用，集群名称映射的名字需要与这里一致
+    ClusterName: ""
+database:
+  user: ""
+  password: ''
+  host: ""
+  port: ""
+  dbname: ""
