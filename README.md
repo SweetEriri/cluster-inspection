@@ -33,8 +33,8 @@ database:
 
 - 概览
 
-![Imgur](https://imgur.com/sCnxQnM)
+![Imgur](https://i.imgur.com/sCnxQnM.png)
 
 - 节点
 
-![Imgur](https://imgur.com/lYvpsvX)
+![Imgur](https://i.imgur.com/lYvpsvX.png)
