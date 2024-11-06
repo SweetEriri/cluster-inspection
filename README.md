@@ -33,8 +33,8 @@ database:
 
 - 概览
 
-![1730878098252](image/README/1730878098252.png)
+![1730878098252](https://github.com/SweetEriri/cluster-inspection/blob/main/image/README/1730876277865.png)
 
 - 节点
 
-![1730876277865](image/README/1730876277865.png)
+![1730876277865]([image/README/1730876277865.png](https://github.com/SweetEriri/cluster-inspection/blob/main/image/README/1730876277865.png))
