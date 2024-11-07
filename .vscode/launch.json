@@ -10,9 +10,7 @@
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
-      "env": {
-        "PROMETHEUS_SERVER": "https://hw-prometheus.tanjingmama.cn"
-      },
+      "env": {},
       "args": []
     }
   ]
