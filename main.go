@@ -5,6 +5,7 @@ import (
 	"cluster-inspection/handlers"
 	"cluster-inspection/report"
 	"cluster-inspection/utils"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -41,6 +42,7 @@ func main() {
 		log.Fatalf("Error creating report handler: %v", err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	// 创建一个 WaitGroup 来等待所有 goroutine 完成
 	var wg sync.WaitGroup
 
@@ -48,7 +50,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		startPeriodicDataCollection(reportHandler)
+		startPeriodicDataCollection(reportHandler, ctx)
 	}()
 
 	// 设置路由（直接获取）
@@ -72,7 +74,7 @@ func main() {
 
 	// 创建一个通道来接收终止信号
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 	// 在一个 goroutine 中启动 HTTP 服务器
 	serverErrors := make(chan error, 1)
@@ -85,6 +87,7 @@ func main() {
 	select {
 	case <-stop:
 		log.Println("Shutting down gracefully...")
+		cancel()
 	case err := <-serverErrors:
 		log.Fatalf("Could not start server: %v", err)
 	}
@@ -93,23 +96,45 @@ func main() {
 	log.Println("Server stopped")
 }
 
-func startPeriodicDataCollection(reportHandler *report.ReportHandler) {
+// startPeriodicDataCollection 开始采集操作
+func startPeriodicDataCollection(reportHandler *report.ReportHandler, ctx context.Context) {
 	log.Println("Starting periodic data collection setup...")
 
-	for {
-		now := time.Now()
+	// 计算当前时间到下一个整点的时间间隔
+	now := time.Now()
+	nextHour := now.Truncate(time.Hour).Add(time.Hour)
+	waitDuration := nextHour.Sub(now)
 
-		nextHour := now.Truncate(time.Hour).Add(time.Hour)
+	// 日志记录等待时间，直到下一个整点
+	log.Printf("Waiting %v until next hour to collect data", waitDuration)
 
-		waitDuration := nextHour.Sub(now)
+	// 创建一个定时器，用于等待直到下一个整点
+	timer := time.NewTimer(waitDuration)
+	defer timer.Stop()
 
-		log.Printf("Waiting %v until next hour to collect data", waitDuration)
-
-		time.Sleep(waitDuration)
-
+	select {
+	case <-ctx.Done():
+		log.Println("kill collection func")
+		return
+	case <-timer.C:
 		// 到达整点，执行数据收集
 		log.Println("Starting hourly data collection...")
 		collectData(reportHandler)
+	}
+
+	ticker := time.NewTicker(time.Hour)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("kill collection func")
+			return
+		case <-ticker.C:
+			// 到达整点，执行数据收集
+			log.Println("Starting hourly data collection...")
+			collectData(reportHandler)
+		}
 	}
 }
 
